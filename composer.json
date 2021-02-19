@@ -1,0 +1,55 @@
+{
+    "name": "beyondcode/laravel-masked-db-dump",
+    "description": "Dump masked information from your database",
+    "keywords": [
+        "beyondcode",
+        "laravel-masked-db-dump"
+    ],
+    "homepage": "https://github.com/beyondcode/laravel-masked-db-dump",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marcel Pociot",
+            "email": "marcel@beyondco.de",
+            "homepage": "https://beyondcode.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.3",
+        "doctrine/dbal": "^2.0|^3.0",
+        "fakerphp/faker": "^1.13",
+        "illuminate/console": "^7.0|^8.0",
+        "illuminate/support": "^7.0|^8.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^6.12",
+        "phpunit/phpunit": "^8.0",
+        "spatie/phpunit-snapshot-assertions": "^4.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "BeyondCode\\LaravelMaskedDumper\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BeyondCode\\LaravelMaskedDumper\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BeyondCode\\LaravelMaskedDumper\\LaravelMaskedDumpServiceProvider"
+            ]
+        }
+    }
+}

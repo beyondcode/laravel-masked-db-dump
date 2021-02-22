@@ -13,6 +13,10 @@ You can install the package via composer:
 composer require beyondcode/laravel-masked-db-dump
 ```
 
+## Documentation
+
+The documentation can be found on [our website](https://beyondco.de/docs/laravel-masked-db-dump).
+
 ### Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.

@@ -7,7 +7,9 @@ use BeyondCode\LaravelMaskedDumper\LaravelMaskedDump;
 
 class DumpDatabaseCommand extends Command
 {
-    protected $signature = 'db:dump {output} {--definition=default} {--gzip}';
+    protected $signature = 'db:masked-dump {output} {--definition=default} {--gzip}';
+
+    protected $description = 'Create a new database dump';
 
     public function handle()
     {

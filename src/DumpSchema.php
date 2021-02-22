@@ -97,7 +97,7 @@ class DumpSchema
 
         foreach ($this->customizedTables as $tableName => $tableDefinition) {
             $table = new TableDefinition($this->getTable($tableName));
-            call_user_func_array($tableDefinition, [$table, Factory::create()]);
+            call_user_func_array($tableDefinition, [$table]);
 
             $this->dumpTables[$tableName] = $table;
         }

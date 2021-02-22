@@ -6,7 +6,7 @@ use Faker\Generator as Faker;
 
 return [
     /**
-     * Use this dump schema definition to remove, replace or mask certain parts of your database dumps.
+     * Use this dump schema definition to remove, replace or mask certain parts of your database tables.
      */
     'default' => DumpSchema::define()
         ->table('users', function (TableDefinition $table) {

@@ -41,9 +41,9 @@ class TableDefinition
         $this->query = $callable;
     }
 
-    public function mask(string $column)
+    public function mask(string $column, string $maskCharacter = 'x')
     {
-        $this->columns[$column] = ColumnDefinition::mask($column);
+        $this->columns[$column] = ColumnDefinition::mask($column, $maskCharacter);
 
         return $this;
     }

@@ -49,7 +49,7 @@ class DumperTest extends TestCase
 
         $this->app['config']['masked-dump.default'] = DumpSchema::define()->allTables();
 
-        $this->artisan('db:dump', [
+        $this->artisan('db:masked-dump', [
             'output' => $outputFile
         ]);
 
@@ -78,7 +78,7 @@ class DumperTest extends TestCase
                 $table->mask('name');
             });
 
-        $this->artisan('db:dump', [
+        $this->artisan('db:masked-dump', [
             'output' => $outputFile
         ]);
 
@@ -107,7 +107,7 @@ class DumperTest extends TestCase
                 $table->replace('password', 'test');
             });
 
-        $this->artisan('db:dump', [
+        $this->artisan('db:masked-dump', [
             'output' => $outputFile
         ]);
 
@@ -137,7 +137,7 @@ class DumperTest extends TestCase
                 $table->replace('email', $faker->safeEmail());
             });
 
-        $this->artisan('db:dump', [
+        $this->artisan('db:masked-dump', [
             'output' => $outputFile
         ]);
 
@@ -165,7 +165,7 @@ class DumperTest extends TestCase
             ->schemaOnly('migrations')
             ->schemaOnly('users');
 
-        $this->artisan('db:dump', [
+        $this->artisan('db:masked-dump', [
             'output' => $outputFile
         ]);
 

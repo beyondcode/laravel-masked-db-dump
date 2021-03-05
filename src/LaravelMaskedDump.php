@@ -111,30 +111,80 @@ class LaravelMaskedDump
     {
         $query = '';
 
-        $queryBuilder = $this->definition->getConnection()
-            ->table($table->getDoctrineTable()->getName());
+        $queryBuilder = $this->definition->getConnection()->table($table->getDoctrineTable()->getName());
 
         $table->modifyQuery($queryBuilder);
 
-        $queryBuilder->get()
-            ->each(function ($row, $index) use ($table, &$query) {
-                $row = $this->transformResultForInsert((array)$row, $table);
-                $tableName = $table->getDoctrineTable()->getName();
+
+        if($table->getChunkSize() > 0) {
+
+            $data = $queryBuilder->get();
+
+            if($data->isEmpty()) {
+                return "";
+            }
+
+            $tableName = $table->getDoctrineTable()->getName();
+            $columns = array_keys((array)$data->first());
+            $column_names = "(`" . join('`, `', $columns) . "`)";
+
+            // When tables have 1000+ rows we must split them in reasonably sized chunks of e.g. 100
+            // otherwise the INSERT statement will fail
+            // this returns a collection of value tuples
+
+            $valuesChunks = $data
+                        ->chunk($table->getChunkSize())
+                        ->map(function($chunk) use($table) {
+                                // for each chunk we generate a list of VALUES for the INSERT statement
+                                // (1, 'some 1', 'data A'),
+                                // (2, 'some 2', 'data B'),
+                                // (3, 'some 3', 'data C'),
+                                // ... etc
+
+                                $values = $chunk->map(function($row) use($table) {
+                                            $row = $this->transformResultForInsert((array)$row, $table);
+                                            $query = '(' . join(', ', $row) . ')';
+                                            return $query;
+                                })->join(', ');
+
+                            return $values;
+            });
+
+            // Now we generate the INSERT statements for each chunk of values
+            // INSERT INTO table <list of columns> VALUES (1, 'some 1', 'data A'), (2, 'some 2', 'data B'), (3, 'some 3', 'data C')...
+            $insert_statement = $valuesChunks->map(
+
+                    function($values) use($table, $tableName, $column_names) {
+
+                        return "INSERT INTO `${tableName}` $column_names VALUES " . $values .';';
+
+                    })
+                    ->join(PHP_EOL);
+
+            return $insert_statement . PHP_EOL;
+
+        } else {
+
+            // orig
+            $queryBuilder->get()
+                ->each(function ($row, $index) use ($table, &$query) {
+                    $row = $this->transformResultForInsert((array)$row, $table);
+                    $tableName = $table->getDoctrineTable()->getName();
 
                 $query .= "INSERT INTO `$tableName` (`" . implode('`, `', array_keys($row)) . '`) VALUES ';
                 $query .= "(";
 
-                $firstColumn = true;
-                foreach ($row as $value) {
-                    if (!$firstColumn) {
-                        $query .= ", ";
+                    $firstColumn = true;
+                    foreach ($row as $value) {
+                        if (!$firstColumn) {
+                            $query .= ", ";
+                        }
+                        $query .= $value;
+                        $firstColumn = false;
                     }
-                    $query .= $value;
-                    $firstColumn = false;
-                }
 
-                $query .= ");" . PHP_EOL;
-            });
+                    $query .= ");" . PHP_EOL;
+                });
 
         return $query;
     }

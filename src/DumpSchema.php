@@ -15,6 +15,7 @@ class DumpSchema
 
     protected $loadAllTables = false;
     protected $customizedTables = [];
+    protected $excludedTables = [];
 
     public function __construct($connectionName = null)
     {
@@ -44,6 +45,15 @@ class DumpSchema
     {
         $this->loadAllTables = true;
 
+        return $this;
+    }
+
+    // Let's you exclude a table from the list of allTables()
+
+    public function exclude(string $tableName)
+    {
+        $this->excludedTables[] = $tableName; 
+        
         return $this;
     }
 
@@ -92,7 +102,14 @@ class DumpSchema
         if ($this->loadAllTables) {
             $this->dumpTables = collect($this->availableTables)->mapWithKeys(function (Table $table) {
                 return [$table->getName() => new TableDefinition($table)];
-            })->toArray();
+            });
+
+            $excluded = $this->excludedTables;
+            $this->dumpTables = $this->dumpTables
+                        // filter excluded tables from list of all tables
+                        ->filter(function($table, $tableName) use($excluded) {
+                                    return !in_array($tableName, $excluded);
+                        })->toArray();
         }
 
         foreach ($this->customizedTables as $tableName => $tableDefinition) {

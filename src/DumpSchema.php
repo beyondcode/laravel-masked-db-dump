@@ -15,6 +15,7 @@ class DumpSchema
 
     protected $loadAllTables = false;
     protected $customizedTables = [];
+    protected $excludedTables = [];
 
     public function __construct($connectionName = null)
     {
@@ -26,6 +27,12 @@ class DumpSchema
         return new static($connectionName);
     }
 
+    public function exclude(string $tableName)
+    {
+        $this->excludedTables[] = $tableName;
+        return $this;
+    }
+    
     public function schemaOnly(string $tableName)
     {
         return $this->table($tableName, function (TableDefinition $table) {

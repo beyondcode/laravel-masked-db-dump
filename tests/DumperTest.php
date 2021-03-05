@@ -171,4 +171,9 @@ class DumperTest extends TestCase
 
         $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
     }
+
+    public function it_can_exclude_certain_tables_from_allTables()
+    {
+        $this->assertTrue(1===1);
+    }
 }

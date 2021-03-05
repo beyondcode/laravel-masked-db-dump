@@ -202,4 +202,45 @@ class DumperTest extends TestCase
 
         $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
     }
+
+    /** @test */
+    public function it_creates_chunked_insert_statements_for_a_table()
+    {
+        $this->loadLaravelMigrations();
+
+        DB::table('users')
+            ->insert(['name' => 'Marcel1', 'email' => 'marcel1@beyondco.de', 'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00', 'updated_at' => '2021-01-01 00:00:00',
+            ]);
+        DB::table('users')
+            ->insert(['name' => 'Marcel2', 'email' => 'marcel2@beyondco.de', 'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00', 'updated_at' => '2021-01-01 00:00:00',
+            ]);
+        DB::table('users')
+            ->insert(['name' => 'Marcel3', 'email' => 'marcel3@beyondco.de', 'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00', 'updated_at' => '2021-01-01 00:00:00',
+            ]);
+        DB::table('users')
+            ->insert(['name' => 'Marcel4', 'email' => 'marcel4@beyondco.de', 'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00', 'updated_at' => '2021-01-01 00:00:00',
+            ]);
+        DB::table('users')
+            ->insert(['name' => 'Marcel5', 'email' => 'marcel5@beyondco.de', 'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00', 'updated_at' => '2021-01-01 00:00:00',
+            ]);
+
+        $outputFile = base_path('test.sql');
+        
+        $this->app['config']['masked-dump.default'] = DumpSchema::define()
+                            ->allTables()
+                            ->table('users', function($table) { 
+                                    return $table->outputInChunksOf(3); 
+                                });
+
+        $this->artisan('db:masked-dump', [
+            'output' => $outputFile
+        ]);
+
+        $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
+    }
 }

@@ -15,6 +15,7 @@ class TableDefinition
     protected $dumpType;
     protected $query;
     protected $columns = [];
+    protected $chunkSize = 0;
 
     public function __construct(Table $table)
     {
@@ -32,6 +33,13 @@ class TableDefinition
     public function fullDump()
     {
         $this->dumpType = static::DUMP_FULL;
+
+        return $this;
+    }
+
+    public function outputInChunksOf(int $chunkSize)
+    {
+        $this->chunkSize = $chunkSize;
 
         return $this;
     }
@@ -66,6 +74,11 @@ class TableDefinition
         }
 
         return false;
+    }
+
+    public function getChunkSize()
+    {
+        return $this->chunkSize;
     }
 
     public function getDoctrineTable()

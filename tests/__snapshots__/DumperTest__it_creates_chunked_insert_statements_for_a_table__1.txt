@@ -23,6 +23,7 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name VARCHAR(255) NOT NULL COLLATE BINARY, email VARCHAR(255) NOT NULL COLLATE BINARY, email_verified_at DATETIME DEFAULT NULL, password VARCHAR(255) NOT NULL COLLATE BINARY, remember_token VARCHAR(255) DEFAULT NULL COLLATE BINARY, created_at DATETIME DEFAULT NULL, updated_at DATETIME DEFAULT NULL);CREATE UNIQUE INDEX users_email_unique ON users (email);
 LOCK TABLES `users` WRITE;
 ALTER TABLE `users` DISABLE KEYS;
-INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES ('1', 'Marcel', NULL, NULL, 'test', NULL, '2021-01-01 00:00:00', '2021-01-01 00:00:00');
+INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES ('1', 'Marcel1', 'marcel1@beyondco.de', NULL, 'test', NULL, '2021-01-01 00:00:00', '2021-01-01 00:00:00'), ('2', 'Marcel2', 'marcel2@beyondco.de', NULL, 'test', NULL, '2021-01-01 00:00:00', '2021-01-01 00:00:00'), ('3', 'Marcel3', 'marcel3@beyondco.de', NULL, 'test', NULL, '2021-01-01 00:00:00', '2021-01-01 00:00:00');
+INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES ('4', 'Marcel4', 'marcel4@beyondco.de', NULL, 'test', NULL, '2021-01-01 00:00:00', '2021-01-01 00:00:00'), ('5', 'Marcel5', 'marcel5@beyondco.de', NULL, 'test', NULL, '2021-01-01 00:00:00', '2021-01-01 00:00:00');
 ALTER TABLE `users` ENABLE KEYS;
 UNLOCK TABLES;

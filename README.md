@@ -17,6 +17,48 @@ composer require beyondcode/laravel-masked-db-dump
 
 The documentation can be found on [our website](https://beyondco.de/docs/laravel-masked-db-dump).
 
+### Exclude tables from the export
+
+Sometimes you might not want to include all tables in the export. You can achieve this with:
+
+```
+return [
+    'default' => DumpSchema::define()
+                    ->allTables()
+                    ->exclude('password_resets')
+                    ->exclude('migrations');
+];
+```
+
+
+### Create INSERTs with multiple rows
+
+When you have a table with many rows (1000+) creating INSERT statements for each row results in a very slow import process.
+For these cases it is better to create INSERT statements with multiple rows.
+
+```
+INSERT INTO table_name (column1, column2, column3, ...)
+VALUES
+    (list of values 1),
+    (list of values 2),
+    (list of values 3),
+    ...
+    (list of values n);
+```
+
+You can achieved this with `->outputInChunksOf($n)`.
+
+```
+return [
+    'default' => DumpSchema::define()
+        ->allTables(),
+        ->table('users', function($table) { 
+                return $table->outputInChunksOf(25); 
+            });
+];
+```
+
+
 ### Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.

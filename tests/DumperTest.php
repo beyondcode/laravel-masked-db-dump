@@ -194,7 +194,7 @@ class DumperTest extends TestCase
         
         $this->app['config']['masked-dump.default'] = DumpSchema::define()
                             ->allTables()
-                            ->exclude('users');
+                            ->exclude(['users']);
 
         $this->artisan('db:masked-dump', [
             'output' => $outputFile

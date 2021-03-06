@@ -17,6 +17,23 @@ composer require beyondcode/laravel-masked-db-dump
 
 The documentation can be found on [our website](https://beyondco.de/docs/laravel-masked-db-dump).
 
+## Documentation for the added features
+
+### Exclude tables from the export
+
+You can specify the tables that you want to exclude from the export. Start with allTables() and then exclude the ones that should not be part of the export.
+
+```
+return [
+    'default' => DumpSchema::define()
+        ->allTables()
+        ->exclude('password_resets')
+        ->exclude('migrations'),
+];
+```
+
+
+
 ### Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.

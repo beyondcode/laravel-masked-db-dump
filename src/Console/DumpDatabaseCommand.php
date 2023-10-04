@@ -14,6 +14,7 @@ class DumpDatabaseCommand extends Command
     public function handle()
     {
         $definition = config('masked-dump.' . $this->option('definition'));
+        $definition = is_callable($definition) ? call_user_func($definition) : $definition;
         $definition->load();
 
         $this->info('Starting Database dump');

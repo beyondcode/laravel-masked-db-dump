@@ -19,13 +19,13 @@
         "php": "^7.3 || ^8.0",
         "doctrine/dbal": "^2.0|^3.0",
         "fakerphp/faker": "^1.13",
-        "illuminate/console": "^7.0|^8.0|^9.0|^10.0",
-        "illuminate/support": "^7.0|^8.0|^9.0|^10.0"
+        "illuminate/console": "^7.0|^8.0|^9.0|^10.0 || ^11.0",
+        "illuminate/support": "^7.0|^8.0|^9.0|^10.0 || ^11.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^6.12|^7.0|^8.0",
-        "phpunit/phpunit": "^8.0 || ^9.0",
-        "spatie/phpunit-snapshot-assertions": "^4.2"
+        "orchestra/testbench": "^6.12|^7.0|^8.0 || ^9.0",
+        "phpunit/phpunit": "^8.0 || ^9.0 || ^10.5",
+        "spatie/phpunit-snapshot-assertions": "^4.2 || ^5.1"
     },
     "autoload": {
         "psr-4": {
@@ -40,7 +40,6 @@
     "scripts": {
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
-
     },
     "config": {
         "sort-packages": true

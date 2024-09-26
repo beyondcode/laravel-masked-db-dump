@@ -7,9 +7,7 @@ use Illuminate\Console\OutputStyle;
 use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
 use Doctrine\DBAL\Platforms\MariaDBPlatform;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
-use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
-use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use Illuminate\Database\Connection as DatabaseConnection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 
@@ -89,12 +87,11 @@ class LaravelMaskedDump
                 return new MySQLPlatform;
             case 'mariadb':
                 return new MariaDBPlatform;
-            case 'pgsql':
-                return new PostgreSQLPlatform;
-            case 'sqlite':
-                return new SqlitePlatform;
             default:
-                throw new \RuntimeException("Unsupported platform: {$connection->getDriverName()}");
+                if ($connection->getDriverName() === 'sqlite' && $this->isTesting()) {
+                    return new SqlitePlatform;
+                }
+                throw new \RuntimeException("Unsupported platform: {$connection->getDriverName()}. Please check the documentation for more information.");
         }
     }
 
@@ -140,5 +137,9 @@ class LaravelMaskedDump
             });
 
         return $query;
+    }
+
+    protected function isTesting(): bool {
+        return config('app.env') === 'workbench' || config('app.env') === 'ci';
     }
 }

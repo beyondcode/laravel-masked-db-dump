@@ -28,13 +28,6 @@ class DumpSchema
         return new static($connectionName);
     }
 
-    public function schemaOnly(string $tableName)
-    {
-        return $this->table($tableName, function (TableDefinition $table) {
-            $table->schemaOnly();
-        });
-    }
-
     public function table(string $tableName, callable $tableDefinition)
     {
         $this->customizedTables[$tableName] = $tableDefinition;
@@ -109,57 +102,20 @@ class DumpSchema
         foreach ($tables as $table) {
             $columns = $this->getBuilder()->getColumns($table['name']);
 
-            $table = new Table($table['name']);
-
+            $doctrineTable = new Table($table['name']);
             foreach ($columns as $column) {
-                $type = $this->mapType($column['type_name']);
-                $table->addColumn(
+
+                $doctrineTable->addColumn(
                     $column['name'],
-                    $type
+                    Types::STRING, // doesn't matter, but is required
                 );
             }
 
-            $doctrineTables[] = $table;
+            $doctrineTables[] = $doctrineTable;
         }
 
         return $doctrineTables;
     }
-
-    protected function mapType(string $typeName): string
-    {
-        switch ($typeName) {
-            case 'char':
-            case 'varchar':
-                return Types::STRING;
-            case 'int':
-            case 'integer':
-                return Types::INTEGER;
-            case 'text':
-            case 'longtext':
-            case 'mediumtext':
-                return Types::TEXT;
-            case 'date':
-                return Types::DATE_MUTABLE;
-            case 'datetime':
-            case 'timestamp':
-                return Types::DATETIME_MUTABLE;
-            case 'bigint':
-            case 'mediumint':
-                return Types::BIGINT;
-            case 'tinyint':
-            case 'smallint':
-                return Types::SMALLINT;
-            case 'binary':
-                return Types::BINARY;
-            case 'json':
-                return Types::JSON;
-            case 'decimal':
-                return Types::DECIMAL;
-            default:
-                return Types::TEXT;
-        }
-    }
-
 
     public function load()
     {

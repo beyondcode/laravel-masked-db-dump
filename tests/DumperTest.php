@@ -161,9 +161,7 @@ class DumperTest extends TestCase
         $outputFile = base_path('test.sql');
 
         $this->app['config']['masked-dump.default'] = DumpSchema::define()
-            ->allTables()
-            ->schemaOnly('migrations')
-            ->schemaOnly('users');
+            ->allTables();
 
         $this->artisan('db:masked-dump', [
             'output' => $outputFile

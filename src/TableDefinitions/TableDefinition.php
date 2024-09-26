@@ -23,13 +23,6 @@ class TableDefinition
         $this->dumpType = static::DUMP_FULL;
     }
 
-    public function schemaOnly()
-    {
-        $this->dumpType = static::DUMP_SCHEMA;
-
-        return $this;
-    }
-
     public function fullDump()
     {
         $this->dumpType = static::DUMP_FULL;

@@ -171,4 +171,31 @@ class DumperTest extends TestCase
 
         $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
     }
+
+    /** @test */
+    public function it_does_remove_excluded_tables_from_allTables()
+    {
+        $this->loadLaravelMigrations();
+
+        DB::table('users')
+            ->insert([
+                'name' => 'Marcel',
+                'email' => 'marcel@beyondco.de',
+                'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00',
+                'updated_at' => '2021-01-01 00:00:00',
+            ]);
+
+        $outputFile = base_path('test.sql');
+
+        $this->app['config']['masked-dump.default'] = DumpSchema::define()
+            ->allTables()
+            ->exclude('users');
+
+        $this->artisan('db:masked-dump', [
+            'output' => $outputFile
+        ]);
+
+        $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
+    }
 }

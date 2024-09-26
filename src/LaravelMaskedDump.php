@@ -2,7 +2,6 @@
 
 namespace BeyondCode\LaravelMaskedDumper;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use Illuminate\Console\OutputStyle;
 use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
@@ -125,7 +124,7 @@ class LaravelMaskedDump
                 $row = $this->transformResultForInsert((array)$row, $table);
                 $tableName = $table->getDoctrineTable()->getName();
 
-                $query .= "INSERT INTO `${tableName}` (`" . implode('`, `', array_keys($row)) . '`) VALUES ';
+                $query .= "INSERT INTO `$tableName` (`" . implode('`, `', array_keys($row)) . '`) VALUES ';
                 $query .= "(";
 
                 $firstColumn = true;

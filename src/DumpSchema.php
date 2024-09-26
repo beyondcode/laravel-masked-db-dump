@@ -5,7 +5,8 @@ namespace BeyondCode\LaravelMaskedDumper;
 use Faker\Factory;
 use Doctrine\DBAL\Schema\Table;
 use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
-use Illuminate\Support\Facades\DB;
+use Doctrine\DBAL\Types\Types;
+use Illuminate\Support\Facades\Schema;
 
 class DumpSchema
 {
@@ -48,11 +49,19 @@ class DumpSchema
     }
 
     /**
-     * @return \Illuminate\Database\ConnectionInterface
+     * @return \Illuminate\Database\Schema\Builder
+     */
+    public function getBuilder()
+    {
+        return Schema::connection($this->connectionName);
+    }
+
+    /**
+     * @return \Illuminate\Database\Connection
      */
     public function getConnection()
     {
-        return DB::connection($this->connectionName);
+        return Schema::connection($this->connectionName)->getConnection();
     }
 
     protected function getTable(string $tableName)
@@ -82,8 +91,67 @@ class DumpSchema
             return;
         }
 
-        $this->availableTables = $this->getConnection()->getDoctrineSchemaManager()->listTables();
+        $this->availableTables = $this->createDoctrineTables($this->getBuilder()->getTables());
     }
+
+    protected function createDoctrineTables(array $tables): array
+    {
+        $doctrineTables = [];
+
+        foreach ($tables as $table) {
+            $columns = $this->getBuilder()->getColumns($table['name']);
+
+            $table = new Table($table['name']);
+
+            foreach ($columns as $column) {
+                $type = $this->mapType($column['type_name']);
+                $table->addColumn(
+                    $column['name'],
+                    $type
+                );
+            }
+
+            $doctrineTables[] = $table;
+        }
+
+        return $doctrineTables;
+    }
+
+    protected function mapType(string $typeName): string
+    {
+        switch ($typeName) {
+            case 'char':
+            case 'varchar':
+                return Types::STRING;
+            case 'int':
+            case 'integer':
+                return Types::INTEGER;
+            case 'text':
+            case 'longtext':
+            case 'mediumtext':
+                return Types::TEXT;
+            case 'date':
+                return Types::DATE_MUTABLE;
+            case 'datetime':
+            case 'timestamp':
+                return Types::DATETIME_MUTABLE;
+            case 'bigint':
+            case 'mediumint':
+                return Types::BIGINT;
+            case 'tinyint':
+            case 'smallint':
+                return Types::SMALLINT;
+            case 'binary':
+                return Types::BINARY;
+            case 'json':
+                return Types::JSON;
+            case 'decimal':
+                return Types::DECIMAL;
+            default:
+                return Types::TEXT;
+        }
+    }
+
 
     public function load()
     {

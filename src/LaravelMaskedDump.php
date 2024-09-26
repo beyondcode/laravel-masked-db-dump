@@ -6,6 +6,13 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use Illuminate\Console\OutputStyle;
 use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
+use Doctrine\DBAL\Platforms\MariaDBPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SqlitePlatform;
+use Doctrine\DBAL\Platforms\SQLServerPlatform;
+use Illuminate\Database\Connection as DatabaseConnection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 
 class LaravelMaskedDump
 {
@@ -15,10 +22,14 @@ class LaravelMaskedDump
     /** @var OutputStyle */
     protected $output;
 
+    /** @var AbstractPlatform */
+    protected $platform;
+
     public function __construct(DumpSchema $definition, OutputStyle $output)
     {
         $this->definition = $definition;
         $this->output = $output;
+        $this->platform = $this->getPlatform($this->definition->getConnection());
     }
 
     public function dump()
@@ -49,10 +60,7 @@ class LaravelMaskedDump
 
     protected function transformResultForInsert($row, TableDefinition $table)
     {
-        /** @var Connection $connection */
-        $connection = $this->definition->getConnection()->getDoctrineConnection();
-
-        return collect($row)->map(function ($value, $column) use ($connection, $table) {
+        return collect($row)->map(function ($value, $column) use ($table) {
             if ($columnDefinition = $table->findColumn($column)) {
                 $value = $columnDefinition->modifyValue($value);
             }
@@ -64,17 +72,31 @@ class LaravelMaskedDump
                 return '""';
             }
 
-            return $connection->quote($value);
+            return $this->platform->quoteStringLiteral($value);
         })->toArray();
     }
 
     protected function dumpSchema(TableDefinition $table)
     {
-        $platform = $this->definition->getConnection()->getDoctrineSchemaManager()->getDatabasePlatform();
-
         $schema = new Schema([$table->getDoctrineTable()]);
 
-        return implode(";", $schema->toSql($platform)) . ";" . PHP_EOL;
+        return implode(";", $schema->toSql($this->platform)) . ";" . PHP_EOL;
+    }
+
+    protected function getPlatform(DatabaseConnection $connection)
+    {
+        switch ($connection->getDriverName()) {
+            case 'mysql':
+                return new MySQLPlatform;
+            case 'mariadb':
+                return new MariaDBPlatform;
+            case 'pgsql':
+                return new PostgreSQLPlatform;
+            case 'sqlite':
+                return new SqlitePlatform;
+            default:
+                throw new \RuntimeException("Unsupported platform: {$connection->getDriverName()}");
+        }
     }
 
     protected function lockTable(string $tableName)

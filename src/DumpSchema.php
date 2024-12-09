@@ -5,7 +5,8 @@ namespace BeyondCode\LaravelMaskedDumper;
 use Faker\Factory;
 use Doctrine\DBAL\Schema\Table;
 use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
-use Illuminate\Support\Facades\DB;
+use Doctrine\DBAL\Types\Types;
+use Illuminate\Support\Facades\Schema;
 
 class DumpSchema
 {
@@ -15,6 +16,7 @@ class DumpSchema
 
     protected $loadAllTables = false;
     protected $customizedTables = [];
+    protected $excludedTables = [];
 
     public function __construct($connectionName = null)
     {
@@ -24,13 +26,6 @@ class DumpSchema
     public static function define($connectionName = null)
     {
         return new static($connectionName);
-    }
-
-    public function schemaOnly(string $tableName)
-    {
-        return $this->table($tableName, function (TableDefinition $table) {
-            $table->schemaOnly();
-        });
     }
 
     public function table(string $tableName, callable $tableDefinition)
@@ -47,12 +42,27 @@ class DumpSchema
         return $this;
     }
 
+    public function exclude(string $tableName)
+    {
+        $this->excludedTables[] = $tableName;
+
+        return $this;
+    }
+
     /**
-     * @return \Illuminate\Database\ConnectionInterface
+     * @return \Illuminate\Database\Schema\Builder
+     */
+    public function getBuilder()
+    {
+        return Schema::connection($this->connectionName);
+    }
+
+    /**
+     * @return \Illuminate\Database\Connection
      */
     public function getConnection()
     {
-        return DB::connection($this->connectionName);
+        return Schema::connection($this->connectionName)->getConnection();
     }
 
     protected function getTable(string $tableName)
@@ -82,7 +92,29 @@ class DumpSchema
             return;
         }
 
-        $this->availableTables = $this->getConnection()->getDoctrineSchemaManager()->listTables();
+        $this->availableTables = $this->createDoctrineTables($this->getBuilder()->getTables());
+    }
+
+    protected function createDoctrineTables(array $tables): array
+    {
+        $doctrineTables = [];
+
+        foreach ($tables as $table) {
+            $columns = $this->getBuilder()->getColumns($table['name']);
+
+            $doctrineTable = new Table($table['name']);
+            foreach ($columns as $column) {
+
+                $doctrineTable->addColumn(
+                    $column['name'],
+                    Types::STRING, // doesn't matter, but is required
+                );
+            }
+
+            $doctrineTables[] = $doctrineTable;
+        }
+
+        return $doctrineTables;
     }
 
     public function load()
@@ -90,9 +122,15 @@ class DumpSchema
         $this->loadAvailableTables();
 
         if ($this->loadAllTables) {
-            $this->dumpTables = collect($this->availableTables)->mapWithKeys(function (Table $table) {
+            $dumpTables = collect($this->availableTables)->mapWithKeys(function (Table $table) {
                 return [$table->getName() => new TableDefinition($table)];
-            })->toArray();
+            });
+
+            $excluded = $this->excludedTables;
+            $this->dumpTables = $dumpTables
+                ->filter(function ($table, $tableName) use ($excluded) {
+                    return !in_array($tableName, $excluded);
+                })->toArray();
         }
 
         foreach ($this->customizedTables as $tableName => $tableDefinition) {

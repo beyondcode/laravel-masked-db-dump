@@ -19,6 +19,4 @@ return [
             });
             $table->mask('password');
         })
-        ->schemaOnly('failed_jobs')
-        ->schemaOnly('password_reset_tokens'),
 ];

@@ -30,9 +30,7 @@ return [
                 return $faker->safeEmail;
             });
             $table->mask('password');
-        })
-        ->schemaOnly('failed_jobs')
-        ->schemaOnly('password_resets'),
+        }),
 ];
 ```
 
@@ -48,19 +46,17 @@ return [
 ];
 ```
 
-## Dumping table schemas only
+## Exclude specific tables from dumps
 
-For certain tables, you do not need to dump the data, but only need the structure of the table itself - like a `password_reset` table. To instruct the masked dumper to only dump the schema, you may use the `schemaOnly` method:
+The `exclude()` method allows you to exclude specific tables from the dump. This can be useful if you want to exclude certain tables from the dump:
 
 ```php
 return [
     'default' => DumpSchema::define()
-    	->allTables()
-    	->schemaOnly('password_resets'),
+            ->allTables()
+            ->exclude('password_resets'),
 ];
 ```
-
-This configuration will dump all of your tables - but for the `password_resets` table, it will not create any `INSERT` statements and only dumps the schema of this table.
 
 ## Masking table column content
 
@@ -106,7 +102,6 @@ This configuration will dump all users and replace their name with "John Doe".
 To gain more flexibility over the replacement, you can pass a function as the second argument. This function receives a Faker instance, as well as the original value of the column:
 
 ```php
-
 return [
     'default' => DumpSchema::define()
         ->table('users', function (TableDefinition $table) {
@@ -118,6 +113,21 @@ return [
 ```
 
 When dumping your data, the dump will now contain a safe, randomly generated email address for every user.
+
+## Optimizing large datasets
+
+The method TableDefinition::outputInChunksOf(int $chunkSize) allows for chunked inserts for large datasets, 
+improving performance and reducing memory consumption during the dump process.
+
+```php
+return [
+    'default' => DumpSchema::define()
+        ->allTables()
+        ->table('users', function($table) { 
+            return $table->outputInChunksOf(3); 
+        });
+];
+```
 
 ## Specifying the database connection to use
 

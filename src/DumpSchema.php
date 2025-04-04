@@ -50,6 +50,18 @@ class DumpSchema
     }
 
     /**
+     * @param string[] $tableNames
+     */
+    public function excludeTables(array $tableNames)
+    {
+        foreach ($tableNames as $tableName) {
+            $this->excludedTables[] = $tableName;
+        }
+
+        return $this;
+    }
+
+    /**
      * @return \Illuminate\Database\Schema\Builder
      */
     public function getBuilder()

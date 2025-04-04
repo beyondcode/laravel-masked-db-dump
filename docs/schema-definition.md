@@ -18,8 +18,6 @@ There are two ways to configure your dump schema. For production applications us
 When using Laravel's config caching feature, the default inline configuration approach may cause serialization errors. To avoid this issue, use PHP callables in your configuration:
 
 ```php
-<?php
-
 use BeyondCode\LaravelMaskedDumper\DumpSchema;
 use App\Support\MaskedDump;
 
@@ -35,8 +33,6 @@ return [
 Then create the referenced class:
 
 ```php
-<?php
-
 namespace App\Support;
 
 use BeyondCode\LaravelMaskedDumper\DumpSchema;
@@ -217,8 +213,6 @@ return [
 When using the callable approach with multiple schemas, you can define separate classes for each schema:
 
 ```php
-<?php
-
 use App\Support\DefaultMaskedDump;
 use App\Support\SqliteMaskedDump;
 

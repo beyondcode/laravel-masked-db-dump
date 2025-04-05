@@ -2,6 +2,7 @@
 title: Dump Schema Definition
 order: 2
 ---
+
 # Dump Schema Definition
 
 Your database dump configuration takes place in the `config/masked-dump.php` file.
@@ -21,7 +22,7 @@ return [
      * Use this dump schema definition to remove, replace or mask certain parts of your database tables.
      */
     'default' => DumpSchema::define()
-    	->allTables()
+     ->allTables()
         ->table('users', function (TableDefinition $table) {
             $table->replace('name', function (Faker $faker) {
                 return $faker->name;
@@ -42,19 +43,20 @@ This ensures that all of your database tables will be represented in the dump. Y
 ```php
 return [
     'default' => DumpSchema::define()
-    	->allTables(),
+     ->allTables(),
 ];
 ```
 
 ## Exclude specific tables from dumps
 
-The `exclude()` method allows you to exclude specific tables from the dump. This can be useful if you want to exclude certain tables from the dump:
+The `exclude()` and `excludeTables()` methods allow you to exclude specific tables from the dump. This can be useful if you want to exclude certain tables from the dump:
 
 ```php
 return [
     'default' => DumpSchema::define()
             ->allTables()
-            ->exclude('password_resets'),
+            ->exclude('password_resets')
+            ->excludeTables(['user_secrets', 'admin_notes']),
 ];
 ```
 
@@ -116,28 +118,28 @@ When dumping your data, the dump will now contain a safe, randomly generated ema
 
 ## Optimizing large datasets
 
-The method TableDefinition::outputInChunksOf(int $chunkSize) allows for chunked inserts for large datasets, 
+The method TableDefinition::outputInChunksOf(int $chunkSize) allows for chunked inserts for large datasets,
 improving performance and reducing memory consumption during the dump process.
 
 ```php
 return [
     'default' => DumpSchema::define()
         ->allTables()
-        ->table('users', function($table) { 
-            return $table->outputInChunksOf(3); 
+        ->table('users', function($table) {
+            return $table->outputInChunksOf(3);
         });
 ];
 ```
 
 ## Specifying the database connection to use
 
-By default, this package will use your `default` database connection when dumping the tables. 
+By default, this package will use your `default` database connection when dumping the tables.
 You can pass the connection to the `DumpSchema::define` method, in order to specify your own database connection string:
 
 ```php
 return [
     'default' => DumpSchema::define('sqlite')
-    	->allTables()
+     ->allTables()
 ];
 ```
 
@@ -149,9 +151,9 @@ The key in the configuration array is the identifier that will be used when you 
 ```php
 return [
     'default' => DumpSchema::define()
-    	->allTables(),
+     ->allTables(),
 
     'sqlite' => DumpSchema::define('sqlite')
-    	->schemaOnly('custom_table'),
+     ->schemaOnly('custom_table'),
 ];
 ```

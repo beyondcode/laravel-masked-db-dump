@@ -75,7 +75,7 @@ return [
      * NOTE: This approach is not compatible with Laravel's config caching.
      */
     'default' => DumpSchema::define()
-    	->allTables()
+     ->allTables()
         ->table('users', function (TableDefinition $table) {
             $table->replace('name', function (Faker $faker) {
                 return $faker->name;
@@ -96,19 +96,20 @@ This ensures that all of your database tables will be represented in the dump. Y
 ```php
 return [
     'default' => DumpSchema::define()
-    	->allTables(),
+     ->allTables(),
 ];
 ```
 
 ## Exclude specific tables from dumps
 
-The `exclude()` method allows you to exclude specific tables from the dump. This can be useful if you want to exclude certain tables from the dump:
+The `exclude()` and `excludeTables()` methods allow you to exclude specific tables from the dump. This can be useful if you want to exclude certain tables from the dump:
 
 ```php
 return [
     'default' => DumpSchema::define()
             ->allTables()
-            ->exclude('password_resets'),
+            ->exclude('password_resets')
+            ->excludeTables(['user_secrets', 'admin_notes']),
 ];
 ```
 
@@ -191,7 +192,7 @@ You can pass the connection to the `DumpSchema::define` method, in order to spec
 ```php
 return [
     'default' => DumpSchema::define('sqlite')
-    	->allTables()
+     ->allTables()
 ];
 ```
 
@@ -203,10 +204,10 @@ The key in the configuration array is the identifier that will be used when you 
 ```php
 return [
     'default' => DumpSchema::define()
-    	->allTables(),
+     ->allTables(),
 
     'sqlite' => DumpSchema::define('sqlite')
-    	->schemaOnly('custom_table'),
+     ->schemaOnly('custom_table'),
 ];
 ```
 

@@ -75,7 +75,7 @@ return [
      * NOTE: This approach is not compatible with Laravel's config caching.
      */
     'default' => DumpSchema::define()
-    	->allTables()
+        ->allTables()
         ->table('users', function (TableDefinition $table) {
             $table->replace('name', function (Faker $faker) {
                 return $faker->name;
@@ -96,19 +96,30 @@ This ensures that all of your database tables will be represented in the dump. Y
 ```php
 return [
     'default' => DumpSchema::define()
-    	->allTables(),
+        ->allTables(),
 ];
 ```
 
-## Exclude specific tables from dumps
+## Excluding tables from dumps
 
-The `exclude()` method allows you to exclude specific tables from the dump. This can be useful if you want to exclude certain tables from the dump:
+The `exclude()` method allows you to exclude specific tables from the dump. This can be useful if you have certain tables which aren't required for this dump.
 
 ```php
 return [
     'default' => DumpSchema::define()
-            ->allTables()
-            ->exclude('password_resets'),
+        ->allTables()
+        ->exclude('password_resets'),
+];
+```
+
+Consider the case where you have a set of tables that you never want to dump. Perhaps they contain complex nested JSON that is too complex to anonymise, or huge amounts of analytic data that just won't be necessary. Well, you can also pass an array to `exclude()`:
+
+```php
+return [
+    'default' => DumpSchema::define()
+        ->allTables()
+        ->exclude(['password_resets', 'secrets', 'lies', 'cat_birthdays']),
+        ->exclude(config('database.forbidden_tables')),
 ];
 ```
 
@@ -170,7 +181,7 @@ When dumping your data, the dump will now contain a safe, randomly generated ema
 
 ## Optimizing large datasets
 
-The method TableDefinition::outputInChunksOf(int $chunkSize) allows for chunked inserts for large datasets,
+The method `TableDefinition::outputInChunksOf(int $chunkSize)` allows for chunked inserts for large datasets,
 improving performance and reducing memory consumption during the dump process.
 
 ```php
@@ -191,7 +202,7 @@ You can pass the connection to the `DumpSchema::define` method, in order to spec
 ```php
 return [
     'default' => DumpSchema::define('sqlite')
-    	->allTables()
+     ->allTables()
 ];
 ```
 
@@ -203,10 +214,10 @@ The key in the configuration array is the identifier that will be used when you 
 ```php
 return [
     'default' => DumpSchema::define()
-    	->allTables(),
+     ->allTables(),
 
     'sqlite' => DumpSchema::define('sqlite')
-    	->schemaOnly('custom_table'),
+     ->schemaOnly('custom_table'),
 ];
 ```
 

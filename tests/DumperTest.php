@@ -6,7 +6,6 @@ use BeyondCode\LaravelMaskedDumper\DumpSchema;
 use BeyondCode\LaravelMaskedDumper\LaravelMaskedDumpServiceProvider;
 use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
 use Faker\Generator;
-use Illuminate\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Orchestra\Testbench\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
@@ -198,6 +197,32 @@ class DumperTest extends TestCase
     }
 
     /** @test */
+    public function it_does_remove_excluded_array_of_tables_from_allTables()
+    {
+        $this->loadLaravelMigrations();
+
+        DB::table('users')
+            ->insert([
+                'name' => 'Marcel',
+                'email' => 'marcel@beyondco.de',
+                'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00',
+                'updated_at' => '2021-01-01 00:00:00',
+            ]);
+
+        $outputFile = base_path('test.sql');
+
+        $this->app['config']['masked-dump.default'] = DumpSchema::define()
+            ->allTables()
+            ->exclude(['users']);
+
+        $this->artisan('db:masked-dump', [
+            'output' => $outputFile
+        ]);
+
+        $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
+    }
+    /** @test */
     public function it_creates_chunked_insert_statements_for_a_table()
     {
         $this->loadLaravelMigrations();
@@ -224,12 +249,12 @@ class DumperTest extends TestCase
             ]);
 
         $outputFile = base_path('test.sql');
-        
+
         $this->app['config']['masked-dump.default'] = DumpSchema::define()
-                            ->allTables()
-                            ->table('users', function($table) { 
-                                    return $table->outputInChunksOf(3); 
-                                });
+            ->allTables()
+            ->table('users', function($table) {
+                return $table->outputInChunksOf(3);
+            });
 
         $this->artisan('db:masked-dump', [
             'output' => $outputFile

@@ -35,7 +35,7 @@ return [
 ];
 ```
 
-## Definiting which tables to dump
+## Defining which tables to dump
 
 The dump configuration allows you to specify which tables you want to dump. The simplest form of dumping your database can be achieved by using the `allTables()` method.
 This ensures that all of your database tables will be represented in the dump. You can then go and customize how certain tables should be dumped:
@@ -118,7 +118,7 @@ When dumping your data, the dump will now contain a safe, randomly generated ema
 
 ## Optimizing large datasets
 
-The method TableDefinition::outputInChunksOf(int $chunkSize) allows for chunked inserts for large datasets,
+The method `TableDefinition::outputInChunksOf(int $chunkSize)` allows for chunked inserts for large datasets,
 improving performance and reducing memory consumption during the dump process.
 
 ```php
@@ -139,7 +139,7 @@ You can pass the connection to the `DumpSchema::define` method, in order to spec
 ```php
 return [
     'default' => DumpSchema::define('sqlite')
-     ->allTables()
+        ->allTables()
 ];
 ```
 
@@ -151,9 +151,9 @@ The key in the configuration array is the identifier that will be used when you 
 ```php
 return [
     'default' => DumpSchema::define()
-     ->allTables(),
+        ->allTables(),
 
     'sqlite' => DumpSchema::define('sqlite')
-     ->schemaOnly('custom_table'),
+        ->schemaOnly('custom_table'),
 ];
 ```

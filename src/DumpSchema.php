@@ -42,9 +42,17 @@ class DumpSchema
         return $this;
     }
 
-    public function exclude(string $tableName)
+    /**
+     * @param string|string[] $tableName Table name(s) to exclude from the dump
+     * @return $this
+     */
+    public function exclude(string|array $tableName)
     {
-        $this->excludedTables[] = $tableName;
+        collect($tableName)
+            ->flatten()
+            ->unique()
+            ->filter(fn ($table) => is_string($table))
+            ->each(fn ($table) => $this->excludedTables[] = $table);
 
         return $this;
     }

@@ -9,10 +9,62 @@ Your database dump configuration takes place in the `config/masked-dump.php` fil
 
 You can use the package's fluent API to define which tables should be dumped and which information should be replaced or masked during the dump process.
 
-This is the basic configuration that you'll receive after installing the package:
+## Configuration Methods
+
+There are two ways to configure your dump schema. For production applications using Laravel's config caching, the callable method is strongly recommended.
+
+### Method 1: Using PHP Callables (Recommended for Production)
+
+When using Laravel's config caching feature, the default inline configuration approach may cause serialization errors. To avoid this issue, use PHP callables in your configuration:
 
 ```php
+use BeyondCode\LaravelMaskedDumper\DumpSchema;
+use App\Support\MaskedDump;
 
+return [
+    /**
+     * Use a callable class to define your dump schema
+     * This method is compatible with Laravel's config caching
+     */
+    'default' => [MaskedDump::class, 'define'],
+];
+```
+
+Then create the referenced class:
+
+```php
+namespace App\Support;
+
+use BeyondCode\LaravelMaskedDumper\DumpSchema;
+use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
+use Faker\Generator as Faker;
+
+class MaskedDump
+{
+    public static function define()
+    {
+        return DumpSchema::define()
+            ->allTables()
+            ->table('users', function (TableDefinition $table) {
+                $table->replace('name', function (Faker $faker) {
+                    return $faker->name;
+                });
+                $table->replace('email', function (Faker $faker) {
+                    return $faker->safeEmail;
+                });
+                $table->mask('password');
+            })
+            ->schemaOnly('failed_jobs')
+            ->schemaOnly('password_reset_tokens');
+    }
+}
+```
+
+### Method 2: Inline Definition
+
+This is the basic configuration that you'll receive after installing the package. While simpler for development, this method is not compatible with Laravel's config caching:
+
+```php
 use BeyondCode\LaravelMaskedDumper\DumpSchema;
 use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
 use Faker\Generator as Faker;
@@ -20,6 +72,7 @@ use Faker\Generator as Faker;
 return [
     /**
      * Use this dump schema definition to remove, replace or mask certain parts of your database tables.
+     * NOTE: This approach is not compatible with Laravel's config caching.
      */
     'default' => DumpSchema::define()
      ->allTables()
@@ -155,5 +208,17 @@ return [
 
     'sqlite' => DumpSchema::define('sqlite')
         ->schemaOnly('custom_table'),
+];
+```
+
+When using the callable approach with multiple schemas, you can define separate classes for each schema:
+
+```php
+use App\Support\DefaultMaskedDump;
+use App\Support\SqliteMaskedDump;
+
+return [
+    'default' => [DefaultMaskedDump::class, 'define'],
+    'sqlite' => [SqliteMaskedDump::class, 'define'],
 ];
 ```

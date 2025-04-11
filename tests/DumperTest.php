@@ -262,4 +262,56 @@ class DumperTest extends TestCase
 
         $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
     }
+
+    /** @test */
+    public function it_can_include_individual_unmodified_tables()
+    {
+        $this->loadLaravelMigrations();
+
+        DB::table('users')
+            ->insert([
+                'name' => 'Marcel',
+                'email' => 'marcel@beyondco.de',
+                'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00',
+                'updated_at' => '2021-01-01 00:00:00',
+            ]);
+
+        $outputFile = base_path('test.sql');
+
+        $this->app['config']['masked-dump.default'] = DumpSchema::define()
+            ->include('users');
+
+        $this->artisan('db:masked-dump', [
+            'output' => $outputFile
+        ]);
+
+        $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
+    }
+
+    /** @test */
+    public function it_can_include_an_array_of_unmodified_tables()
+    {
+        $this->loadLaravelMigrations();
+
+        DB::table('users')
+            ->insert([
+                'name' => 'Marcel',
+                'email' => 'marcel@beyondco.de',
+                'password' => 'test',
+                'created_at' => '2021-01-01 00:00:00',
+                'updated_at' => '2021-01-01 00:00:00',
+            ]);
+
+        $outputFile = base_path('test.sql');
+
+        $this->app['config']['masked-dump.default'] = DumpSchema::define()
+            ->include(['users', 'migrations']);
+
+        $this->artisan('db:masked-dump', [
+            'output' => $outputFile
+        ]);
+
+        $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
+    }
 }

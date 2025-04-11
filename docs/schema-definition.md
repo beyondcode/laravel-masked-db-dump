@@ -100,9 +100,17 @@ return [
 ];
 ```
 
-## Excluding tables from dumps
+If you don't want to dump all of your tables, you may add specific tables that you wish to include in the dump by using the `include()` method. You don't need to add a table here if you will be customizing it.
 
-The `exclude()` method allows you to exclude specific tables from the dump. This can be useful if you have certain tables which aren't required for this dump.
+```php
+return [
+    'default' => DumpSchema::define()
+        ->include('audit_logs')
+        ->include(['user_logins', 'failed_jobs']),
+];
+```
+
+If you've started out by adding all tables with `allTables()`, you can remove some of them with the `exclude()` method. This can be useful if you have certain tables which aren't required for this dump.
 
 ```php
 return [

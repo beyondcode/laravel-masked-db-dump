@@ -8,6 +8,8 @@ use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
 use Doctrine\DBAL\Types\Types;
 use Illuminate\Support\Facades\Schema;
 
+use function collect;
+
 class DumpSchema
 {
     protected $connectionName;
@@ -42,9 +44,42 @@ class DumpSchema
         return $this;
     }
 
-    public function exclude(string $tableName)
+    /**
+     * @param string|string[] $tableName Table name(s) to exclude from the dump
+     * @return $this
+     */
+    public function exclude(string|array $tableName)
     {
-        $this->excludedTables[] = $tableName;
+        collect($tableName)
+            ->flatten()
+            ->unique()
+            ->filter(fn ($table) => is_string($table))
+            ->each(fn ($table) => $this->excludedTables[] = $table);
+
+        return $this;
+    }
+
+    public function include(string|array $tableName)
+    {
+        // We're kinda fooling the `load()` and `loadAvailableTables()` method here;
+        // by setting `loadAllTables` to true, and adding tables directly to `availableTables`,
+        // the `load()` method still calls `loadAvailableTables()` but that returns early
+        // because there's already our tables in `availableTables`. Then the `load()`
+        // method sees that `loadAllTables` is true, and loads the tables from
+        // `availableTables` (which we just put there!) into `dumpTables`.
+        $this->loadAllTables = true;
+        $tables = collect($tableName)
+            ->flatten()
+            ->unique()
+            ->filter(fn ($table) => is_string($table))
+            ->filter(fn ($table) => $this->getBuilder()->hasTable($table))
+            ->map(fn ($table) => ['name' => $table])
+            ->toArray();
+
+        $doctrineTables = $this->createDoctrineTables($tables);
+        foreach ($doctrineTables as $doctrineTable) {
+        $this->availableTables[] = $doctrineTable;
+        }
 
         return $this;
     }

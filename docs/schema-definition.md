@@ -100,7 +100,9 @@ return [
 ];
 ```
 
-If you don't want to dump all of your tables, you may add specific tables that you wish to include in the dump by using the `include()` method. You don't need to add a table here if you will be customizing it.
+If you don't want to dump all of your tables, you may add specific tables that you wish to include in the dump by using the `include()` method. List every table that should appear in the dump—including any you will customize with `table()`; `table()` does not add a table to the allowlist on its own. If you prefer to start from the full schema and only customize selected tables, use `allTables()` (and optionally `exclude()`) instead of `include()`.
+
+Do not chain `allTables()` with `include()`. `include()` fixes the set of tables early; combining the two will not merge “all tables” with your includes, and the dump will only contain what `include()` added.
 
 ```php
 return [
@@ -126,7 +128,7 @@ Consider the case where you have a set of tables that you never want to dump. Pe
 return [
     'default' => DumpSchema::define()
         ->allTables()
-        ->exclude(['password_resets', 'secrets', 'lies', 'cat_birthdays']),
+        ->exclude(['password_resets', 'secrets', 'lies', 'cat_birthdays'])
         ->exclude(config('database.forbidden_tables')),
 ];
 ```

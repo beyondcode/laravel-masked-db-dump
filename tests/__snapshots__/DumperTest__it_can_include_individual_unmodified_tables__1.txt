@@ -1,0 +1,1 @@
+INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES ('1', 'Marcel', 'marcel@beyondco.de', NULL, 'test', NULL, '2021-01-01 00:00:00', '2021-01-01 00:00:00');

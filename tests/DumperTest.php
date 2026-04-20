@@ -2,6 +2,8 @@
 
 namespace BeyondCode\LaravelMaskedDumper\Tests;
 
+use Mockery\MockInterface;
+use PHPUnit\Framework\Attributes\Test;
 use BeyondCode\LaravelMaskedDumper\DumpSchema;
 use BeyondCode\LaravelMaskedDumper\LaravelMaskedDumpServiceProvider;
 use BeyondCode\LaravelMaskedDumper\TableDefinitions\TableDefinition;
@@ -340,5 +342,22 @@ class DumperTest extends TestCase
         ]);
 
         $this->assertMatchesTextSnapshot(file_get_contents($outputFile));
+    }
+
+    #[Test]
+    public function it_can_specify_the_schema(): void
+    {
+        $mock = $this->partialMock(DumpSchema::class, function (MockInterface $mock) {
+            $mock->shouldReceive('load')->with('my_schema')->once();
+        });
+
+        $this->app['config']['masked-dump.default'] = $mock;
+
+        $outputFile = base_path('test.sql');
+
+        $this->artisan('db:masked-dump', [
+            'output' => $outputFile,
+            '--schema' => 'my_schema',
+        ]);
     }
 }

@@ -121,13 +121,13 @@ class DumpSchema
         return $this->dumpTables;
     }
 
-    protected function loadAvailableTables()
+    protected function loadAvailableTables(?string $schema = null)
     {
         if ($this->availableTables !== []) {
             return;
         }
 
-        $this->availableTables = $this->createDoctrineTables($this->getBuilder()->getTables());
+        $this->availableTables = $this->createDoctrineTables($this->getBuilder()->getTables($schema));
     }
 
     protected function createDoctrineTables(array $tables): array
@@ -152,9 +152,9 @@ class DumpSchema
         return $doctrineTables;
     }
 
-    public function load()
+    public function load(?string $schema)
     {
-        $this->loadAvailableTables();
+        $this->loadAvailableTables($schema);
 
         if ($this->loadAllTables) {
             $dumpTables = collect($this->availableTables)->mapWithKeys(function (Table $table) {

@@ -7,7 +7,7 @@ use BeyondCode\LaravelMaskedDumper\LaravelMaskedDump;
 
 class DumpDatabaseCommand extends Command
 {
-    protected $signature = 'db:masked-dump {output} {--definition=default} {--gzip}';
+    protected $signature = 'db:masked-dump {output} {--definition=default} {--gzip} {--schema=}';
 
     protected $description = 'Create a new database dump';
 
@@ -15,7 +15,7 @@ class DumpDatabaseCommand extends Command
     {
         $definition = config('masked-dump.' . $this->option('definition'));
         $definition = is_callable($definition) ? call_user_func($definition) : $definition;
-        $definition->load();
+        $definition->load($this->option('schema'));
 
         $this->info('Starting Database dump');
 

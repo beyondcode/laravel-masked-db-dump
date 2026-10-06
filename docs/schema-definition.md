@@ -54,8 +54,7 @@ class MaskedDump
                 });
                 $table->mask('password');
             })
-            ->schemaOnly('failed_jobs')
-            ->schemaOnly('password_reset_tokens');
+            ->exclude(['failed_jobs', 'password_reset_tokens']);
     }
 }
 ```
@@ -227,7 +226,7 @@ return [
      ->allTables(),
 
     'sqlite' => DumpSchema::define('sqlite')
-     ->schemaOnly('custom_table'),
+     ->include('custom_table'),
 ];
 ```
 

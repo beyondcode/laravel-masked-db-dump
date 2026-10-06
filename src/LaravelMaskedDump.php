@@ -108,7 +108,6 @@ class LaravelMaskedDump
                 return "";
             }
 
-            $tableName = $table->getDoctrineTable()->getName();
             $columns = array_keys((array)$data->first());
             $column_names = "($this->escapeString" . join("$this->escapeString, $this->escapeString", $columns) . "$this->escapeString)";
 

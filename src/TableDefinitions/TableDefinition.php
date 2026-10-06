@@ -16,6 +16,8 @@ class TableDefinition
     protected $query;
     protected $columns = [];
     protected $chunkSize = 0;
+    protected $queryChunkSize = 0;
+    protected $queryChunkColumn = 'id';
 
     public function __construct(Table $table)
     {
@@ -33,6 +35,19 @@ class TableDefinition
     public function outputInChunksOf(int $chunkSize)
     {
         $this->chunkSize = $chunkSize;
+
+        return $this;
+    }
+
+    /**
+     * Read the table in chunks of $queryChunkSize rows instead of loading it all at once.
+     * $column must be unique and never null, such as the primary key: rows are paginated by its value,
+     * and rows where it is null are skipped. Rows are read in $column order: an order set with query() throws an exception.
+     */
+    public function queryInChunksOf(int $queryChunkSize, string $column = 'id')
+    {
+        $this->queryChunkSize = $queryChunkSize;
+        $this->queryChunkColumn = $column;
 
         return $this;
     }
@@ -72,6 +87,16 @@ class TableDefinition
     public function getChunkSize()
     {
         return $this->chunkSize;
+    }
+
+    public function getQueryChunkSize()
+    {
+        return $this->queryChunkSize;
+    }
+
+    public function getQueryChunkColumn()
+    {
+        return $this->queryChunkColumn;
     }
 
     public function getDoctrineTable()

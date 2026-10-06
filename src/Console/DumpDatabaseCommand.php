@@ -19,24 +19,24 @@ class DumpDatabaseCommand extends Command
 
         $this->info('Starting Database dump');
 
-        $dumper = new LaravelMaskedDump($definition, $this->output);
-        $dump = $dumper->dump();
+        $outputPath = $this->option('gzip') ? $this->argument('output') . '.gz' : $this->argument('output');
+        $partialOutputPath = $outputPath . '.part';
+        $stream = $this->option('gzip') ? gzopen($partialOutputPath, 'w9') : fopen($partialOutputPath, 'w');
+
+        try {
+            $dumper = new LaravelMaskedDump($definition, $this->output);
+            $dumper->dumpToStream($stream);
+        } catch (\Throwable $exception) {
+            fclose($stream);
+            unlink($partialOutputPath);
+
+            throw $exception;
+        }
+
+        fclose($stream);
+        rename($partialOutputPath, $outputPath);
 
         $this->output->writeln('');
-        $this->writeOutput($dump);
-    }
-
-    protected function writeOutput(string $dump)
-    {
-        if ($this->option('gzip')) {
-            $gz = gzopen($this->argument('output') . '.gz', 'w9');
-            gzwrite($gz, $dump);
-            gzclose($gz);
-
-            $this->info('Wrote database dump to ' . $this->argument('output') . '.gz');
-        } else {
-            file_put_contents($this->argument('output'), $dump);
-            $this->info('Wrote database dump to ' . $this->argument('output'));
-        }
+        $this->info('Wrote database dump to ' . $outputPath);
     }
 }

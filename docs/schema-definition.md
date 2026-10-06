@@ -191,16 +191,37 @@ When dumping your data, the dump will now contain a safe, randomly generated ema
 
 ## Optimizing large datasets
 
-The method `TableDefinition::outputInChunksOf(int $chunkSize)` allows for chunked inserts for large datasets,
-improving performance and reducing memory consumption during the dump process.
+The dump is written to the output file as it is generated, so its size does not affect memory usage.
+
+By default, each table is read with a single query, which loads all of its rows into memory. For large tables,
+the method `TableDefinition::queryInChunksOf(int $queryChunkSize, string $column = 'id')` reads the table in chunks
+of `$queryChunkSize` rows instead. Rows are paginated by the value of `$column`, which must be unique and never null,
+such as the primary key (rows where it is null are skipped). Rows are read in `$column` order, so `queryInChunksOf()` cannot be combined with an order set with `query()`:
 
 ```php
 return [
     'default' => DumpSchema::define()
         ->allTables()
         ->table('users', function($table) {
-            return $table->outputInChunksOf(3);
-        });
+            return $table->queryInChunksOf(1000);
+        })
+        ->table('devices', function($table) {
+            return $table->queryInChunksOf(1000, 'uuid');
+        }),
+];
+```
+
+The method `TableDefinition::outputInChunksOf(int $chunkSize)` groups up to `$chunkSize` rows into a single
+`INSERT` statement, which makes the dump smaller and faster to import. It does not change how the table is read,
+and can be combined with `queryInChunksOf()`:
+
+```php
+return [
+    'default' => DumpSchema::define()
+        ->allTables()
+        ->table('users', function($table) {
+            return $table->queryInChunksOf(1000)->outputInChunksOf(500);
+        }),
 ];
 ```
 

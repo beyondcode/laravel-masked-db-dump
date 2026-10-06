@@ -8,6 +8,7 @@ use Doctrine\DBAL\Platforms\MariaDBPlatform;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Illuminate\Database\Connection as DatabaseConnection;
+use Illuminate\Database\Query\Builder;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 
@@ -38,21 +39,31 @@ class LaravelMaskedDump
 
     public function dump()
     {
-        $tables = $this->definition->getDumpTables();
+        $stream = fopen('php://temp', 'w+');
+        $this->dumpToStream($stream);
+        rewind($stream);
+        $dump = stream_get_contents($stream);
+        fclose($stream);
 
-        $query = '';
+        return $dump;
+    }
+
+    /**
+     * @param resource $stream
+     */
+    public function dumpToStream($stream)
+    {
+        $tables = $this->definition->getDumpTables();
 
         $overallTableProgress = $this->output->createProgressBar(count($tables));
 
         foreach ($tables as $tableName => $table) {
             if ($table->shouldDumpData()) {
-                $query .= $this->dumpTableData($table);
+                $this->dumpTableData($table, $stream);
             }
 
             $overallTableProgress->advance();
         }
-
-        return $query;
     }
 
     protected function transformResultForInsert($row, TableDefinition $table)
@@ -89,10 +100,31 @@ class LaravelMaskedDump
         }
     }
 
-    protected function dumpTableData(TableDefinition $table)
+    /**
+     * @return \Illuminate\Support\Enumerable
+     */
+    protected function fetchRows(TableDefinition $table, Builder $queryBuilder)
     {
-        $query = '';
+        if ($table->getQueryChunkSize() <= 0) {
+            return $queryBuilder->get();
+        }
 
+        if (! empty($queryBuilder->orders)) {
+            throw new \InvalidArgumentException(sprintf(
+                'queryInChunksOf() cannot be combined with an order set in query() on table "%s", as rows are read in "%s" order.',
+                $table->getDoctrineTable()->getName(),
+                $table->getQueryChunkColumn()
+            ));
+        }
+
+        return $queryBuilder->lazyById($table->getQueryChunkSize(), $table->getQueryChunkColumn());
+    }
+
+    /**
+     * @param resource $stream
+     */
+    protected function dumpTableData(TableDefinition $table, $stream)
+    {
         $queryBuilder = $this->definition->getConnection()->table($table->getDoctrineTable()->getName());
 
         $table->modifyQuery($queryBuilder);
@@ -102,40 +134,28 @@ class LaravelMaskedDump
 
         if ($table->getChunkSize() > 0) {
 
-            $data = $queryBuilder->get();
-
-            if ($data->isEmpty()) {
-                return "";
-            }
-
             $tableName = $table->getDoctrineTable()->getName();
-            $columns = array_keys((array)$data->first());
-            $column_names = "($this->escapeString" . join("$this->escapeString, $this->escapeString", $columns) . "$this->escapeString)";
 
-            $valuesChunks = $data
+            $this->fetchRows($table, $queryBuilder)
                 ->chunk($table->getChunkSize())
-                ->map(function ($chunk) use ($table) {
+                ->each(function ($chunk) use ($table, $tableName, $stream) {
+                    $columns = array_keys((array)$chunk->first());
+                    $column_names = "($this->escapeString" . join("$this->escapeString, $this->escapeString", $columns) . "$this->escapeString)";
+
                     $values = $chunk->map(function ($row) use ($table) {
                         $row = $this->transformResultForInsert((array)$row, $table);
                         $query = '(' . join(', ', $row) . ')';
                         return $query;
                     })->join(', ');
 
-                    return $values;
+                    $this->write($stream, "INSERT INTO $tableName $column_names VALUES " . $values . ';' . PHP_EOL);
                 });
-
-            $insert_statement = $valuesChunks->map(function ($values) use ($table, $tableName, $column_names) {
-                return "INSERT INTO $tableName $column_names VALUES " . $values . ';';
-            })
-                ->join(PHP_EOL);
-
-            return $insert_statement . PHP_EOL;
         } else {
-            $queryBuilder->get()
-                ->each(function ($row, $index) use ($table, &$query, $tableName) {
+            $this->fetchRows($table, $queryBuilder)
+                ->each(function ($row, $index) use ($table, $tableName, $stream) {
                     $row = $this->transformResultForInsert((array)$row, $table);
 
-                    $query .= "INSERT INTO $tableName ($this->escapeString" . implode("$this->escapeString, $this->escapeString", array_keys($row)) . "$this->escapeString) VALUES ";
+                    $query = "INSERT INTO $tableName ($this->escapeString" . implode("$this->escapeString, $this->escapeString", array_keys($row)) . "$this->escapeString) VALUES ";
 
                     $query .= "(";
 
@@ -149,9 +169,19 @@ class LaravelMaskedDump
                     }
 
                     $query .= ");" . PHP_EOL;
+
+                    $this->write($stream, $query);
                 });
         }
+    }
 
-        return $query;
+    /**
+     * @param resource $stream
+     */
+    protected function write($stream, string $sql)
+    {
+        if (fwrite($stream, $sql) !== strlen($sql)) {
+            throw new \RuntimeException('Could not write the database dump to the output stream. Is the disk full?');
+        }
     }
 }

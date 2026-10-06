@@ -12,6 +12,7 @@ php artisan db:masked-dump output.sql
 ```
 
 Running this command, will use the `default` dump schema definition and write the resulting dump to a file called `output.sql`.
+The dump is written as it is generated, to a `.part` file next to the output file, which then replaces the output file once the dump is complete. If the dump fails or is interrupted, the output file is left untouched. An interrupted dump (Ctrl+C, memory limit) may leave the `.part` file behind, which the next dump overwrites.
 
 ## Changing Definitions
 
